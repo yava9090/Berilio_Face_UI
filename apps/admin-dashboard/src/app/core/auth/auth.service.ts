@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { AuthUtils } from 'app/core/auth/auth.utils';
 import { UserService } from 'app/core/user/user.service';
 import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { environment } from 'environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -58,21 +59,24 @@ export class AuthService {
             return throwError('User is already logged in.');
         }
 
-        return this._httpClient.post('api/auth/sign-in', credentials).pipe(
-            switchMap((response: any) => {
-                // Store the access token in the local storage
-                this.accessToken = response.accessToken;
 
-                // Set the authenticated flag to true
-                this._authenticated = true;
+        return this._httpClient
+            .post(`${environment.apiUrl}/identity/login`, credentials)
+            .pipe(
+                switchMap((response: any) => {
+                    // Store the access token in the local storage
+                    this.accessToken = response.accessToken;
 
-                // Store the user on the user service
-                this._userService.user = response.user;
+                    // Set the authenticated flag to true
+                    this._authenticated = true;
 
-                // Return a new observable with the response
-                return of(response);
-            })
-        );
+                    // Store the user on the user service
+                    this._userService.user = response.user;
+
+                    // Return a new observable with the response
+                    return of(response);
+                })
+            );
     }
 
     /**
