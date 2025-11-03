@@ -38,7 +38,9 @@ export class CompanyStore {
     }
 
     create(payload: CreateCompanyRequest): Observable<void> {
-        return this._service.createCompany(payload).pipe(
+        return this._service
+            .createCompany(payload)
+            .pipe(
             tap(() => this.load()),
             catchError((error) => {
                 this._error.set(

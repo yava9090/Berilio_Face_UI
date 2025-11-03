@@ -7,7 +7,7 @@ export interface Company {
 
 export interface CreateCompanyRequest {
     name: string;
-    ownerUserId?: string;
+    ownerUserId: string;
 }
 
 export interface UpdateCompanyRequest {
