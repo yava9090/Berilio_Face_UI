@@ -4,6 +4,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { RouterLink } from '@angular/router';
 import { Company } from 'app/core/models/company.model';
 import { CompanyStore } from 'app/core/state/company.store';
 import { CompanyCreateDialogComponent } from 'app/modules/companies/components/company-create-dialog/company-create-dialog.component';
@@ -11,7 +14,7 @@ import { CompanyCreateDialogComponent } from 'app/modules/companies/components/c
 @Component({
     selector: 'app-companies',
     standalone: true,
-    imports: [MatTableModule, MatButtonModule, MatDialogModule, MatSnackBarModule, NgIf],
+    imports: [MatTableModule, MatButtonModule, MatDialogModule, MatSnackBarModule, MatIconModule, MatMenuModule, RouterLink, NgIf],
     templateUrl: './companies.component.html',
     styleUrls: ['./companies.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
