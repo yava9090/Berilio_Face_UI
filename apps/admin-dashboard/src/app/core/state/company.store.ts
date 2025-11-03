@@ -5,7 +5,7 @@ import {
     CreateCompanyRequest,
     UpdateCompanyRequest,
 } from 'app/core/models/company.model';
-import { finalize } from 'rxjs';
+import { finalize, map, catchError, throwError, tap, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class CompanyStore {
@@ -37,17 +37,17 @@ export class CompanyStore {
             });
     }
 
-    create(payload: CreateCompanyRequest): void {
-        this._service.createCompany(payload).subscribe({
-            next: () => {
-                this.load();
-            },
-            error: (error) => {
+    create(payload: CreateCompanyRequest): Observable<void> {
+        return this._service.createCompany(payload).pipe(
+            tap(() => this.load()),
+            catchError((error) => {
                 this._error.set(
                     error?.message ?? 'No se pudo crear la compañía'
                 );
-            },
-        });
+                return throwError(() => error);
+            }),
+            map(() => void 0)
+        );
     }
 
     update(id: string, payload: UpdateCompanyRequest): void {

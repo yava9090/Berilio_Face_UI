@@ -12,13 +12,13 @@ Este documento resume los contratos expuestos actualmente por el backend de Beri
 - **GET `/companies/{id}`** → `CompanyResponse`
 - **POST `/companies`**
   - Body: `{ name, ownerUserId }`
-  - Respuesta `201 Created` con `Guid` de la compañía.
+  - Respuesta `200` con GUID de la compañía. (Swagger)
 - **PUT `/companies/{id}`**
   - Body: `{ name }`
   - Respuesta `204 NoContent`.
-- **DELETE `/companies/{id}`** (`ArchiveCompany`)
+- **PUT `/companies/{id}/archive`** (`ArchiveCompany`)
   - Respuesta `204 NoContent`.
-- **POST `/companies/{id}/restore`** (`RestoreCompany`)
+- **PUT `/companies/{id}/restore`** (`RestoreCompany`)
   - Respuesta `204 NoContent`.
 - **Permisos**: `Permissions.GetCompanies`, `Permissions.ModifyCompanies`
 

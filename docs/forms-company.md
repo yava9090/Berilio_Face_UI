@@ -40,3 +40,11 @@ Basado en los contratos backend y las directrices UI.
 ## Pendientes
 - Catálogo de usuarios para `ownerUserId`.
 - Campos adicionales futuros (NIF, logo) → reservar espacio en UI.
+
+## Formularios
+- Dialog modal con campos: nombre (obligatorio) y ownerUserId opcional.
+- Uso de `CompanyStore.create` y snackbar para feedback.
+
+## Formularios
+- Formulario modal (MatDialog) para crear compañía: Campos `name` (obligatorio) y `ownerUserId` opcional.
+- Tras guardar se recarga el listado y se muestra snackbar de éxito/error.
