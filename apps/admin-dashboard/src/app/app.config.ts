@@ -52,6 +52,10 @@ export const appConfig: ApplicationConfig = {
             config: {
                 availableLangs: [
                     {
+                        id: 'es',
+                        label: 'Español',
+                    },
+                    {
                         id: 'en',
                         label: 'English',
                     },
@@ -60,7 +64,7 @@ export const appConfig: ApplicationConfig = {
                         label: 'Turkish',
                     },
                 ],
-                defaultLang: 'en',
+                defaultLang: 'es',
                 fallbackLang: 'en',
                 reRenderOnLangChange: true,
                 prodMode: !isDevMode(),

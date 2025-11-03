@@ -14,14 +14,14 @@
             <div
                 class="mt-8 text-4xl font-extrabold leading-tight tracking-tight"
             >
-                Sign in
+                Inicia sesión
             </div>
             <div class="mt-0.5 flex items-baseline font-medium">
-                <div>Don't have an account?</div>
+                <div>¿No tienes una cuenta?</div>
                 <a
                     class="ml-1 text-primary-500 hover:underline"
                     [routerLink]="['/sign-up']"
-                    >Sign up
+                    >Regístrate
                 </a>
             </div>
 
@@ -32,8 +32,8 @@
                 [showIcon]="false"
                 [type]="'info'"
             >
-                You are browsing <strong>Fuse Demo</strong>. Click on the "Sign
-                in" button to access the Demo and Documentation.
+                Estás en el <strong>panel administrativo de Berilio Face</strong>.
+                Usa "Iniciar sesión" para comenzar.
             </fuse-alert>
 
             <!-- Alert -->
@@ -53,21 +53,21 @@
             <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
                 <!-- Email field -->
                 <mat-form-field class="w-full">
-                    <mat-label>Email address</mat-label>
+                    <mat-label>Correo electrónico</mat-label>
                     <input id="email" matInput [formControlName]="'email'" />
                     @if (signInForm.get('email').hasError('required')) {
-                        <mat-error> Email address is required </mat-error>
+                        <mat-error> El correo electrónico es obligatorio </mat-error>
                     }
                     @if (signInForm.get('email').hasError('email')) {
                         <mat-error>
-                            Please enter a valid email address
+                            Ingresa un correo electrónico válido
                         </mat-error>
                     }
                 </mat-form-field>
 
                 <!-- Password field -->
                 <mat-form-field class="w-full">
-                    <mat-label>Password</mat-label>
+                    <mat-label>Contraseña</mat-label>
                     <input
                         id="password"
                         matInput
@@ -98,7 +98,7 @@
                             ></mat-icon>
                         }
                     </button>
-                    <mat-error> Password is required </mat-error>
+                    <mat-error> La contraseña es obligatoria </mat-error>
                 </mat-form-field>
 
                 <!-- Actions -->
@@ -110,12 +110,12 @@
                         [color]="'primary'"
                         [formControlName]="'rememberMe'"
                     >
-                        Remember me
+                        Recuérdame
                     </mat-checkbox>
                     <a
                         class="text-md font-medium text-primary-500 hover:underline"
                         [routerLink]="['/forgot-password']"
-                        >Forgot password?
+                        >¿Olvidaste tu contraseña?
                     </a>
                 </div>
 
@@ -128,7 +128,7 @@
                     (click)="signIn()"
                 >
                     @if (!signInForm.disabled) {
-                        <span> Sign in </span>
+                        <span> Iniciar sesión </span>
                     }
                     @if (signInForm.disabled) {
                         <mat-progress-spinner
@@ -139,14 +139,14 @@
                 </button>
 
                 <!-- Separator -->
-                <div class="mt-8 flex items-center">
+                <!-- <div class="mt-8 flex items-center">
                     <div class="mt-px flex-auto border-t"></div>
-                    <div class="text-secondary mx-2">Or continue with</div>
+                    <div class="text-secondary mx-2">O continúa con</div>
                     <div class="mt-px flex-auto border-t"></div>
-                </div>
+                </div> -->
 
                 <!-- Single sign-on buttons -->
-                <div class="mt-8 flex items-center space-x-4">
+                <!-- <div class="mt-8 flex items-center space-x-4">
                     <button class="flex-auto" type="button" mat-stroked-button>
                         <mat-icon
                             class="icon-size-5"
@@ -165,7 +165,7 @@
                             [svgIcon]="'feather:github'"
                         ></mat-icon>
                     </button>
-                </div>
+                </div> -->
             </form>
         </div>
     </div>
@@ -196,13 +196,12 @@
         <!-- Content -->
         <div class="relative z-10 w-full max-w-2xl">
             <div class="text-7xl font-bold leading-none text-gray-100">
-                <div>Welcome to</div>
-                <div>our community</div>
+                <div>Bienvenido a</div>
+                <div>Berilio Face</div>
             </div>
             <div class="mt-6 text-lg leading-6 tracking-tight text-gray-400">
-                Fuse helps developers to build organized and well coded
-                dashboards full of beautiful and rich modules. Join us and start
-                building your application today.
+                Berilio Face te ayuda a administrar y analizar la operación de
+                tu compañía desde un solo lugar.
             </div>
             <div class="mt-8 flex items-center">
                 <div class="flex flex-0 items-center -space-x-1.5">
@@ -224,7 +223,7 @@
                     />
                 </div>
                 <div class="ml-4 font-medium tracking-tight text-gray-400">
-                    More than 17k people joined us, it's your turn
+                    <!-- Más de 17&nbsp;000 personas ya confían en nosotros; es tu turno -->
                 </div>
             </div>
         </div>
