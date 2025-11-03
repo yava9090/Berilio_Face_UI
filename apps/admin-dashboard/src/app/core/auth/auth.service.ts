@@ -61,7 +61,7 @@ export class AuthService {
 
 
         return this._httpClient
-            .post(`${environment.apiUrl}/identity/login`, credentials)
+            .post(`${environment.apiUrl}/api/identity/login`, credentials)
             .pipe(
                 switchMap((response: any) => {
                     // Store the access token in the local storage
