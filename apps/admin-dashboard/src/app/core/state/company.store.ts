@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { CompanyService } from 'app/core/services/company.service';
 import {
     Company,
@@ -6,16 +6,27 @@ import {
     UpdateCompanyRequest,
 } from 'app/core/models/company.model';
 import { finalize, map, catchError, throwError, tap, Observable } from 'rxjs';
+import { IdentityService } from 'app/core/services/identity.service';
+import { UserSummary } from 'app/core/models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class CompanyStore {
     private readonly _service = inject(CompanyService);
+    private readonly _identityService = inject(IdentityService);
 
     private readonly _companies = signal<Company[]>([]);
     private readonly _loading = signal(false);
     private readonly _error = signal<string | null>(null);
+    private readonly _owners = signal<Record<string, UserSummary>>({});
 
-    readonly companies = this._companies.asReadonly();
+    readonly companies = computed(() => this._companies().map((company) => {
+        const owner = this._owners()[company.ownerUserId];
+        return {
+            ...company,
+            ownerName: owner?.displayName,
+            ownerEmail: owner?.email,
+        };
+    }));
     readonly loading = this._loading.asReadonly();
     readonly error = this._error.asReadonly();
 
@@ -28,11 +39,28 @@ export class CompanyStore {
                 next: (companies) => {
                     this._companies.set(companies);
                     this._error.set(null);
+                    this._loadOwners();
                 },
                 error: (error) => {
                     this._error.set(
                         error?.message ?? 'Error cargando compañías'
                     );
+                },
+            });
+    }
+
+    private _loadOwners(): void {
+        this._identityService
+            .getUsersByRole('Administrator')
+            .subscribe({
+                next: (users) => {
+                    const lookup = users.reduce(
+                        (acc, user) => { acc[user.id] = user; return acc; }, {} as Record<string, UserSummary>
+                    );
+                    this._owners.set(lookup);
+                },
+                error: () => {
+                    // dejamos owners vacío si falla
                 },
             });
     }
