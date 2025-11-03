@@ -1,16 +1,18 @@
-import { NgFor, NgIf } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from 'app/core/models/location.model';
 import { LocationService } from 'app/core/services/location.service';
 import { finalize } from 'rxjs';
+import { LocationDialogComponent } from '../components/location-dialog/location-dialog.component';
 
 @Component({
     selector: 'app-company-locations',
     standalone: true,
-    imports: [MatTableModule, MatButtonModule, RouterLink, NgIf, NgFor],
+    imports: [MatTableModule, MatButtonModule, RouterLink, NgIf],
     templateUrl: './company-locations.component.html',
     styleUrls: ['./company-locations.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,6 +20,7 @@ import { finalize } from 'rxjs';
 export class CompanyLocationsComponent implements OnInit {
     private readonly _locationService = inject(LocationService);
     private readonly _route = inject(ActivatedRoute);
+    private readonly _dialog = inject(MatDialog);
 
     companyId!: string;
     displayedColumns: string[] = ['name', 'city', 'country', 'schedule', 'actions'];
@@ -54,5 +57,12 @@ export class CompanyLocationsComponent implements OnInit {
 
     trackById(_: number, item: Location): string {
         return item.id;
+    }
+
+    openCreateDialog(): void {
+        this._dialog.open(LocationDialogComponent, {
+            width: '720px',
+            data: { companyId: this.companyId },
+        });
     }
 }

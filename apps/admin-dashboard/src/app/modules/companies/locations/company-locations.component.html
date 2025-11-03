@@ -10,7 +10,7 @@
             <button mat-stroked-button [routerLink]="['/companies']">
                 Volver a compañías
             </button>
-            <button mat-flat-button color="primary" disabled>
+            <button mat-flat-button color="primary" (click)="openCreateDialog()">
                 Crear sede
             </button>
         </div>
