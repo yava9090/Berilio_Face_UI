@@ -526,7 +526,10 @@ export class LocationDialogComponent implements OnInit, AfterViewInit {
                 city: address.city,
                 state: address.state,
                 country: address.country,
-                postalCode: address.postalCode?.trim() ?? '',
+                postalCode:
+                    address.postalCode?.trim() && address.postalCode?.trim() !== ''
+                        ? address.postalCode.trim()
+                        : '00000',
             },
             coordinate: {
                 latitude: coordinate.latitude,
