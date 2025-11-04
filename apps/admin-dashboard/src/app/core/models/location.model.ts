@@ -26,3 +26,10 @@ export interface Location {
     coordinate: LocationCoordinate;
     schedule: LocationScheduleEntry[];
 }
+
+export interface CreateLocationRequest {
+    name: string;
+    address: LocationAddress;
+    coordinate: LocationCoordinate;
+    schedule: LocationScheduleEntry[];
+}

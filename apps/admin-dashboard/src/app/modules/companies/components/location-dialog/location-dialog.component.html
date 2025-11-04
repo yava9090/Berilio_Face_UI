@@ -233,8 +233,25 @@
 </form>
 
 <div mat-dialog-actions align="end">
-    <button mat-button type="button" (click)="close()">Cancelar</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid" form="locationForm">
-        Guardar
+    <div class="submit-error" *ngIf="submitError">
+        {{ submitError }}
+    </div>
+    <button mat-button type="button" (click)="close()" [disabled]="loading">
+        Cancelar
+    </button>
+    <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="form.invalid || loading"
+        form="locationForm"
+    >
+        <mat-progress-spinner
+            *ngIf="loading"
+            [diameter]="18"
+            [strokeWidth]="2"
+            mode="indeterminate"
+        ></mat-progress-spinner>
+        <span *ngIf="!loading">Guardar</span>
     </button>
 </div>

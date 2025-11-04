@@ -19,7 +19,11 @@ import {
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+    MAT_DIALOG_DATA,
+    MatDialogModule,
+    MatDialogRef,
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +34,8 @@ import {
     MapboxGeocodingFeature,
     MapboxService,
 } from 'app/core/services/mapbox.service';
+import { CreateLocationRequest } from 'app/core/models/location.model';
+import { LocationService } from 'app/core/services/location.service';
 import {
     COLOMBIA_DEPARTMENTS,
     COLOMBIA_MUNICIPALITIES,
@@ -50,6 +56,10 @@ interface DayOption {
 }
 
 const DEFAULT_CENTER: [number, number] = [-74.0721, 4.711];
+
+interface LocationDialogData {
+    companyId: string;
+}
 
 @Component({
     selector: 'app-location-dialog',
@@ -77,6 +87,8 @@ export class LocationDialogComponent implements OnInit, AfterViewInit {
     private readonly _dialogRef = inject(MatDialogRef<LocationDialogComponent>);
     private readonly _fb = inject(FormBuilder);
     private readonly _mapboxService = inject(MapboxService);
+    private readonly _locationService = inject(LocationService);
+    private readonly _dialogData = inject<LocationDialogData>(MAT_DIALOG_DATA);
     private readonly _destroyRef = inject(DestroyRef);
 
     readonly days: DayOption[] = [
@@ -94,6 +106,8 @@ export class LocationDialogComponent implements OnInit, AfterViewInit {
         COLOMBIA_MUNICIPALITIES;
 
     filteredMunicipalities: MunicipalityOption[] = [];
+    loading = false;
+    submitError: string | null = null;
 
     readonly form = this._fb.group({
         name: this._fb.nonNullable.control('', [
@@ -224,12 +238,32 @@ export class LocationDialogComponent implements OnInit, AfterViewInit {
     }
 
     submit(): void {
-        if (this.form.invalid) {
+        if (this.form.invalid || this.loading) {
             this.form.markAllAsTouched();
             return;
         }
 
-        this._dialogRef.close(this.form.getRawValue());
+        const request = this._buildCreateRequest();
+        if (!request) {
+            return;
+        }
+
+        this.loading = true;
+        this.submitError = null;
+
+        const companyId = this._dialogData?.companyId;
+        this._locationService
+            .createLocation(companyId, request)
+            .pipe(finalize(() => (this.loading = false)))
+            .subscribe({
+                next: (location) => this._dialogRef.close(location),
+                error: (error) => {
+                    this.submitError =
+                        error?.error?.detail ??
+                        error?.message ??
+                        'No se pudo guardar la sede. Inténtalo nuevamente.';
+                },
+            });
     }
 
     trackByIndex(index: number): number {
@@ -467,5 +501,42 @@ export class LocationDialogComponent implements OnInit, AfterViewInit {
             },
             { emitEvent: false }
         );
+    }
+
+    private _buildCreateRequest(): CreateLocationRequest | null {
+        const { name, address, coordinate, schedule } =
+            this.form.getRawValue();
+
+        if (
+            coordinate.latitude == null ||
+            coordinate.longitude == null ||
+            !address.departmentCode ||
+            !address.cityId
+        ) {
+            this.submitError =
+                'Completa la dirección y define la ubicación en el mapa antes de guardar.';
+            return null;
+        }
+
+        return {
+            name: name.trim(),
+            address: {
+                street: address.street.trim(),
+                additionalInfo: address.additionalInfo?.trim() || null,
+                city: address.city,
+                state: address.state,
+                country: address.country,
+                postalCode: address.postalCode?.trim() ?? '',
+            },
+            coordinate: {
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+            },
+            schedule: schedule.map((entry) => ({
+                day: entry.day,
+                start: entry.start,
+                end: entry.end,
+            })),
+        };
     }
 }

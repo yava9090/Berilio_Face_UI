@@ -60,9 +60,17 @@ export class CompanyLocationsComponent implements OnInit {
     }
 
     openCreateDialog(): void {
-        this._dialog.open(LocationDialogComponent, {
-            width: '720px',
-            data: { companyId: this.companyId },
-        });
+        this._dialog
+            .open(LocationDialogComponent, {
+                width: '880px',
+                maxWidth: '95vw',
+                data: { companyId: this.companyId },
+            })
+            .afterClosed()
+            .subscribe((result) => {
+                if (result) {
+                    this.loadLocations();
+                }
+            });
     }
 }
