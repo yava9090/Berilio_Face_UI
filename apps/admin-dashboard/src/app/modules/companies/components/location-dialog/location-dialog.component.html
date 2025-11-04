@@ -47,39 +47,47 @@
             </mat-form-field>
 
             <mat-form-field appearance="fill">
-                <mat-label>Ciudad</mat-label>
-                <input matInput formControlName="city" autocomplete="off" />
-                <mat-error *ngIf="form.get('address.city')?.hasError('required')">
-                    La ciudad es obligatoria.
+                <mat-label>Departamento</mat-label>
+                <mat-select formControlName="departmentCode">
+                    <mat-option
+                        *ngFor="let department of departments"
+                        [value]="department.code"
+                    >
+                        {{ department.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.get('address.departmentCode')?.hasError('required')">
+                    Selecciona un departamento.
                 </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="fill">
-                <mat-label>Estado / Provincia</mat-label>
-                <input matInput formControlName="state" autocomplete="off" />
-                <mat-error *ngIf="form.get('address.state')?.hasError('required')">
-                    El estado es obligatorio.
+                <mat-label>Municipio</mat-label>
+                <mat-select
+                    formControlName="cityId"
+                    [disabled]="filteredMunicipalities.length === 0"
+                >
+                    <mat-option
+                        *ngFor="let municipality of filteredMunicipalities"
+                        [value]="municipality.id"
+                    >
+                        {{ municipality.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.get('address.cityId')?.hasError('required')">
+                    Selecciona un municipio.
                 </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="fill">
                 <mat-label>País</mat-label>
-                <input matInput formControlName="country" autocomplete="off" />
-                <mat-error
-                    *ngIf="form.get('address.country')?.hasError('required')"
-                >
-                    El país es obligatorio.
-                </mat-error>
+                <input matInput formControlName="country" readonly />
             </mat-form-field>
 
             <mat-form-field appearance="fill">
                 <mat-label>Código postal</mat-label>
                 <input matInput formControlName="postalCode" autocomplete="off" />
-                <mat-error
-                    *ngIf="form.get('address.postalCode')?.hasError('required')"
-                >
-                    El código postal es obligatorio.
-                </mat-error>
+                <mat-hint>Opcional</mat-hint>
             </mat-form-field>
         </div>
     </section>
@@ -96,6 +104,7 @@
                     step="0.000001"
                     formControlName="latitude"
                     autocomplete="off"
+                    readonly
                 />
                 <mat-error *ngIf="form.get('coordinate.latitude')?.hasError('required')">
                     La latitud es obligatoria.
@@ -116,6 +125,7 @@
                     step="0.000001"
                     formControlName="longitude"
                     autocomplete="off"
+                    readonly
                 />
                 <mat-error *ngIf="form.get('coordinate.longitude')?.hasError('required')">
                     La longitud es obligatoria.
@@ -127,6 +137,33 @@
                     No puede ser mayor a 180.
                 </mat-error>
             </mat-form-field>
+        </div>
+    </section>
+
+    <section class="map-section">
+        <div class="section-header">
+            <h3 class="section-title">Mapa</h3>
+            <button
+                mat-stroked-button
+                type="button"
+                color="primary"
+                (click)="locateOnMap()"
+            >
+                Ubicar en el mapa
+            </button>
+        </div>
+        <p class="map-hint">
+            Completa la dirección y presiona "Ubicar en el mapa" o arrastra el
+            marcador para ajustar las coordenadas.
+        </p>
+        <div class="map-wrapper">
+            <div class="map-overlay" *ngIf="mapLoading">
+                <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+            </div>
+            <div class="map-container" #mapContainer></div>
+        </div>
+        <div class="map-error" *ngIf="mapError">
+            {{ mapError }}
         </div>
     </section>
 

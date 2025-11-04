@@ -1,4 +1,6 @@
 export const environment = {
     production: true,
     apiUrl: 'http://localhost:5198',
+    mapboxAccessToken: '',
+    mapboxStyleUrl: 'mapbox://styles/mapbox/streets-v12',
 };
