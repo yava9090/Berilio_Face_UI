@@ -83,6 +83,13 @@ export const appRoutes: Route[] = [
                         (m) => m.companyLocationsRoutes
                     ),
             },
+            {
+                path: 'companies/:companyId/employees',
+                loadChildren: () =>
+                    import('app/modules/companies/employees/company-employees.routes').then(
+                        (m) => m.companyEmployeesRoutes
+                    ),
+            },
             {path: 'companies', loadChildren: () => import('app/modules/companies/companies.routes').then(m => m.companiesRoutes)},
         ]
     }

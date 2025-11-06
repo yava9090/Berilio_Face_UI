@@ -1,0 +1,78 @@
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>upload_file</mat-icon>
+    <span>Carga masiva de empleados</span>
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="upload()">
+    <div mat-dialog-content class="dialog-content">
+        <p>
+            Selecciona la sede y adjunta el archivo en formato XLSX para importar los empleados.
+        </p>
+
+        <ng-container *ngIf="!loadingLocations; else loadingTpl">
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Sede</mat-label>
+                <mat-select formControlName="locationId">
+                    <mat-option *ngFor="let location of locations" [value]="location.id">
+                        {{ location.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-hint *ngIf="locations.length === 0">
+                    No hay sedes disponibles para esta compañía.
+                </mat-hint>
+            </mat-form-field>
+
+            <div class="file-picker">
+                <label class="file-picker__label" for="bulk-upload-input">
+                    <input
+                        id="bulk-upload-input"
+                        type="file"
+                        (change)="onFileSelected($event)"
+                        accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                    />
+                    <mat-icon>attach_file</mat-icon>
+                    <span>Elegir archivo</span>
+                </label>
+
+                <div class="file-picker__filename" *ngIf="fileName; else placeholder">
+                    {{ fileName }}
+                </div>
+
+                <ng-template #placeholder>
+                    <div class="file-picker__placeholder">
+                        No has seleccionado ningún archivo.
+                    </div>
+                </ng-template>
+            </div>
+        </ng-container>
+
+        <ng-template #loadingTpl>
+            <div class="loading-state">
+                <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+                <span>Cargando sedes...</span>
+            </div>
+        </ng-template>
+
+        <div class="error" *ngIf="error">
+            {{ error }}
+        </div>
+    </div>
+
+    <div mat-dialog-actions align="end">
+        <button mat-button type="button" (click)="close()">Cerrar</button>
+        <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="uploading || form.disabled || form.invalid || !hasFile"
+        >
+            <mat-progress-spinner
+                *ngIf="uploading"
+                diameter="18"
+                mode="indeterminate"
+                strokeWidth="2"
+            ></mat-progress-spinner>
+            Cargar archivo
+        </button>
+    </div>
+</form>

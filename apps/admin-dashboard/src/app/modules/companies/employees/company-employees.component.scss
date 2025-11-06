@@ -1,0 +1,25 @@
+.employees__select {
+    min-width: 220px;
+}
+
+table {
+    width: 100%;
+
+    th {
+        font-weight: 600;
+        color: var(--fuse-text-secondary);
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

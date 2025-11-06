@@ -1,5 +1,11 @@
 import { NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    OnInit,
+    inject,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
@@ -21,6 +27,7 @@ export class CompanyLocationsComponent implements OnInit {
     private readonly _locationService = inject(LocationService);
     private readonly _route = inject(ActivatedRoute);
     private readonly _dialog = inject(MatDialog);
+    private readonly _cdr = inject(ChangeDetectorRef);
 
     companyId!: string;
     displayedColumns: string[] = ['name', 'city', 'country', 'schedule', 'actions'];
@@ -42,7 +49,12 @@ export class CompanyLocationsComponent implements OnInit {
         this.loading = true;
         this._locationService
             .getLocations(this.companyId)
-            .pipe(finalize(() => (this.loading = false)))
+            .pipe(
+                finalize(() => {
+                    this.loading = false;
+                    this._cdr.markForCheck();
+                })
+            )
             .subscribe({
                 next: (locations) => {
                     this.locations = locations;
@@ -71,6 +83,7 @@ export class CompanyLocationsComponent implements OnInit {
                 if (result) {
                     this.loadLocations();
                 }
+                this._cdr.markForCheck();
             });
     }
 }

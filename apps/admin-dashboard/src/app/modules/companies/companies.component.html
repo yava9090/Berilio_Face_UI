@@ -81,6 +81,10 @@
                                     <mat-icon>location_on</mat-icon>
                                     <span>Sedes</span>
                                 </button>
+                                <button mat-menu-item [routerLink]="['/companies', company.id, 'employees']">
+                                    <mat-icon>groups</mat-icon>
+                                    <span>Empleados</span>
+                                </button>
                                 <button mat-menu-item>
                                     <mat-icon>workspaces</mat-icon>
                                     <span>Proyectos</span>

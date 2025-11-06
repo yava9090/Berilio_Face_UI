@@ -1,0 +1,125 @@
+<div class="flex min-w-0 flex-auto flex-col">
+    <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4 sm:px-10">
+        <div>
+            <h1 class="text-2xl font-semibold leading-tight">Empleados</h1>
+            <p class="text-secondary text-sm">
+                Consulta y gestiona los empleados asociados a las sedes de la compañía.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <mat-form-field *ngIf="hasLocations" appearance="outline" class="employees__select">
+                <mat-label>Sede</mat-label>
+                <mat-select
+                    [value]="selectedLocationId"
+                    (selectionChange)="onLocationChange($event.value)"
+                    [disabled]="loadingLocations"
+                >
+                    <mat-option [value]="ALL_LOCATIONS_OPTION">Todas las sedes</mat-option>
+                    <mat-option *ngFor="let location of locations" [value]="location.id">
+                        {{ location.name }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <button
+                mat-icon-button
+                type="button"
+                aria-label="Actualizar empleados"
+                (click)="refreshEmployees()"
+                [disabled]="loadingEmployees || !hasLocations"
+            >
+                <mat-icon [class.spin]="loadingEmployees">refresh</mat-icon>
+            </button>
+
+            <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                (click)="openBulkUploadDialog()"
+                [disabled]="loadingLocations || !hasLocations"
+            >
+                <mat-icon>file_upload</mat-icon>
+                Carga masiva
+            </button>
+
+            <button mat-flat-button color="primary" type="button" disabled>
+                Crear empleado
+            </button>
+        </div>
+    </div>
+
+    <div class="flex-auto px-6 pb-6 sm:px-10 sm:pb-10">
+        <div
+            class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            *ngIf="locationsError"
+        >
+            {{ locationsError }}
+        </div>
+
+        <div class="bg-card rounded-2xl p-6 shadow">
+            <div
+                class="flex h-40 flex-col items-center justify-center gap-2 text-secondary"
+                *ngIf="loadingEmployees || loadingLocations"
+            >
+                <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+                <span>Cargando empleados...</span>
+            </div>
+
+            <ng-container
+                *ngIf="!loadingEmployees && !loadingLocations && !employeesError; else errorTpl"
+            >
+                <table
+                    mat-table
+                    class="w-full"
+                    *ngIf="employees.length > 0; else emptyTpl"
+                    [dataSource]="employees"
+                >
+                    <ng-container matColumnDef="fullName">
+                        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                        <td mat-cell *matCellDef="let employee">
+                            {{ employee.firstName }} {{ employee.lastName }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="identification">
+                        <th mat-header-cell *matHeaderCellDef>Identificación</th>
+                        <td mat-cell *matCellDef="let employee">
+                            {{ employee.identificationNumber || '—' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone">
+                        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+                        <td mat-cell *matCellDef="let employee">
+                            {{ employee.phone || '—' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="location">
+                        <th mat-header-cell *matHeaderCellDef>Sede</th>
+                        <td mat-cell *matCellDef="let employee">
+                            {{ employee.locationName ?? getLocationName(employee.locationId) }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackEmployee"></tr>
+                </table>
+
+                <ng-template #emptyTpl>
+                    <div class="flex h-40 flex-col items-center justify-center gap-2 text-secondary">
+                        <mat-icon class="text-4xl">groups</mat-icon>
+                        <span>No hay empleados registrados en la sede seleccionada.</span>
+                    </div>
+                </ng-template>
+            </ng-container>
+
+            <ng-template #errorTpl>
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    {{ employeesError }}
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</div>
