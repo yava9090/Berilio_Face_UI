@@ -28,6 +28,10 @@ export class AppComponent {
   readonly employee = signal<EmployeeProfile | null>(null);
 
   readonly hasEmployee = computed(() => this.employee() !== null);
+  readonly employeeFullName = computed(() => {
+    const profile = this.employee();
+    return profile ? `${profile.firstName} ${profile.lastName}` : '';
+  });
 
   submitIdentification(): void {
     if (this.identificationForm.invalid) {

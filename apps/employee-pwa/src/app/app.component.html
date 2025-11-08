@@ -33,18 +33,24 @@
 
       <div *ngSwitchCase="'enroll'" class="status__message status__message--warning">
         <h2>Necesitamos tu selfie de referencia</h2>
-        <p>
-          Hola {{ employee()?.fullName }}. Aún no tenemos tu foto base, así que debemos capturarla antes de registrar asistencias.
+        <p class="employee-summary" *ngIf="hasEmployee()">
+          <span>{{ employeeFullName() }}</span>
+          <small>Cédula {{ employee()?.identificationNumber }}</small>
         </p>
+        <p>Debemos capturar tu foto base antes de registrar asistencias.</p>
         <button type="button" class="secondary" (click)="requestEnrollment()">Registrar selfie base</button>
         <button type="button" class="link-button" (click)="resetFlow()">Volver</button>
       </div>
 
       <div *ngSwitchCase="'ready'" class="status__message status__message--success">
-        <h2>Todo listo, {{ employee()?.fullName }}</h2>
+        <h2>Todo listo, {{ employeeFullName() }}</h2>
+        <p class="employee-summary">
+          <span>{{ employeeFullName() }}</span>
+          <small>Cédula {{ employee()?.identificationNumber }}</small>
+        </p>
         <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
         <button type="button" class="primary" (click)="markAttendance()">Tomar selfie y registrar</button>
-        <button type="button" class="link-button" (click)="resetFlow()">No soy {{ employee()?.fullName }}</button>
+        <button type="button" class="link-button" (click)="resetFlow()">No soy {{ employeeFullName() }}</button>
       </div>
 
       <div *ngSwitchCase="'error'" class="status__message status__message--error">
@@ -60,6 +66,6 @@
   </section>
 
   <footer>
-    <small>Versión preliminar del PWA de asistencia · Las funciones de cámara y validación se habilitarán en los próximos sprints.</small>
+    <small>Dispositivo controlado por el encargado de obra.</small>
   </footer>
 </div>

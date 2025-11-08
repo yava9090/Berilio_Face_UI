@@ -3,7 +3,8 @@ import { Observable, delay, map, of, throwError } from 'rxjs';
 
 export interface EmployeeProfile {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   identificationNumber: string;
   hasBaseSelfie: boolean;
 }
@@ -28,15 +29,47 @@ export class EmployeeService {
 
     return of(trimmed).pipe(
       delay(600),
-      map((id) => ({
-        id:
-          typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-            ? crypto.randomUUID()
-            : `emp-${Math.floor(Math.random() * 1_000_000)}`,
-        fullName: `Empleado ${id}`,
-        identificationNumber: id,
-        hasBaseSelfie,
-      }))
+      map((id) => {
+        const firstName = this.pickRandom(this.firstNames);
+        const lastName = this.pickRandom(this.lastNames);
+
+        return {
+          id:
+            typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+              ? crypto.randomUUID()
+              : `emp-${Math.floor(Math.random() * 1_000_000)}`,
+          firstName,
+          lastName,
+          identificationNumber: id,
+          hasBaseSelfie,
+        } satisfies EmployeeProfile;
+      })
     );
   }
+
+  private pickRandom(source: string[]): string {
+    return source[Math.floor(Math.random() * source.length)];
+  }
+
+  private readonly firstNames = [
+    'Andrés',
+    'Beatriz',
+    'Carlos',
+    'Diana',
+    'Ernesto',
+    'Flor',
+    'Germán',
+    'Hilda',
+  ];
+
+  private readonly lastNames = [
+    'López',
+    'García',
+    'Rodríguez',
+    'Martínez',
+    'Ramírez',
+    'Fernández',
+    'Hernández',
+    'Vargas',
+  ];
 }
