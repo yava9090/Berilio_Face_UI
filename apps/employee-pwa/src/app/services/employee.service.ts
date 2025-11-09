@@ -1,22 +1,36 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, map, of, throwError } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, map, throwError } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 export interface EmployeeProfile {
   id: string;
+  locationId: string;
   firstName: string;
   lastName: string;
   identificationNumber: string;
+  phone: string;
   hasBaseSelfie: boolean;
 }
+
+type EmployeeIdentificationResponse = {
+  id: string;
+  locationId: string;
+  firstName: string;
+  lastName: string;
+  identificationNumber: string;
+  phone: string;
+  hasBaseSelfie: boolean;
+};
 
 @Injectable({
   providedIn: 'root',
 })
 export class EmployeeService {
-  /**
-   * TODO: Reemplazar la simulación por una llamada real al backend cuando
-   * se exponga el endpoint de búsqueda por cédula.
-   */
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
+
   lookupByIdentification(identification: string): Observable<EmployeeProfile> {
     const trimmed = identification.trim();
 
@@ -24,52 +38,31 @@ export class EmployeeService {
       return throwError(() => new Error('La identificación no puede estar vacía.'));
     }
 
-    // Simulación para desarrollo: números pares tienen selfie base, impares no.
-    const hasBaseSelfie = Number(trimmed[trimmed.length - 1]) % 2 === 0;
+    const url = `${this.apiUrl}/employees/identification/${encodeURIComponent(trimmed)}`;
 
-    return of(trimmed).pipe(
-      delay(600),
-      map((id) => {
-        const firstName = this.pickRandom(this.firstNames);
-        const lastName = this.pickRandom(this.lastNames);
+    return this.http.get<EmployeeIdentificationResponse>(url).pipe(
+      map((response) => ({
+        id: response.id,
+        locationId: response.locationId,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        identificationNumber: response.identificationNumber,
+        phone: response.phone,
+        hasBaseSelfie: response.hasBaseSelfie ?? false,
+      })),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          return throwError(() => new Error('No encontramos un empleado con esa identificación.'));
+        }
 
-        return {
-          id:
-            typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-              ? crypto.randomUUID()
-              : `emp-${Math.floor(Math.random() * 1_000_000)}`,
-          firstName,
-          lastName,
-          identificationNumber: id,
-          hasBaseSelfie,
-        } satisfies EmployeeProfile;
+        const fallbackMessage =
+          error.error?.title ??
+          error.error?.detail ??
+          error.error?.message ??
+          'No pudimos validar la identificación en este momento. Intenta nuevamente.';
+
+        return throwError(() => new Error(fallbackMessage));
       })
     );
   }
-
-  private pickRandom(source: string[]): string {
-    return source[Math.floor(Math.random() * source.length)];
-  }
-
-  private readonly firstNames = [
-    'Andrés',
-    'Beatriz',
-    'Carlos',
-    'Diana',
-    'Ernesto',
-    'Flor',
-    'Germán',
-    'Hilda',
-  ];
-
-  private readonly lastNames = [
-    'López',
-    'García',
-    'Rodríguez',
-    'Martínez',
-    'Ramírez',
-    'Fernández',
-    'Hernández',
-    'Vargas',
-  ];
 }

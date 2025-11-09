@@ -1,6 +1,12 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ReactiveFormsModule, Validators, FormBuilder } from '@angular/forms';
-import { NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { EmployeeService, EmployeeProfile } from './services/employee.service';
@@ -10,9 +16,10 @@ type ViewState = 'idle' | 'loading' | 'enroll' | 'ready' | 'error';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [ReactiveFormsModule, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault],
+  imports: [ReactiveFormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   private readonly fb = inject(FormBuilder);
@@ -20,7 +27,7 @@ export class AppComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly identificationForm = this.fb.nonNullable.group({
-    identification: ['', [Validators.required, Validators.pattern(/^\d{6,}$/)]],
+    identification: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   readonly state = signal<ViewState>('idle');

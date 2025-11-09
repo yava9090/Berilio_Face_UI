@@ -16,52 +16,68 @@
         maxlength="15"
         placeholder="Ej: 1032456789"
       />
-      <div class="input-hint" *ngIf="identificationForm.controls.identification.invalid && identificationForm.controls.identification.touched">
-        Debes ingresar una cédula válida (solo números, mínimo 6 dígitos).
-      </div>
+      @if (identificationForm.controls.identification.invalid && identificationForm.controls.identification.touched) {
+        <div class="input-hint">
+          Debes ingresar una cédula válida (mínimo 6 caracteres).
+        </div>
+      }
 
       <button type="submit" [disabled]="state() === 'loading'">
         {{ state() === 'loading' ? 'Buscando...' : 'Continuar' }}
       </button>
     </form>
 
-    <div class="status" [ngSwitch]="state()">
-      <div *ngSwitchCase="'loading'" class="status__message">
-        <span class="loader"></span>
-        Validando información...
-      </div>
+    <div class="status">
+      @switch (state()) {
+        @case ('loading') {
+          <div class="status__message">
+            <span class="loader"></span>
+            Validando información...
+          </div>
+        }
 
-      <div *ngSwitchCase="'enroll'" class="status__message status__message--warning">
-        <h2>Necesitamos tu selfie de referencia</h2>
-        <p class="employee-summary" *ngIf="hasEmployee()">
-          <span>{{ employeeFullName() }}</span>
-          <small>Cédula {{ employee()?.identificationNumber }}</small>
-        </p>
-        <p>Debemos capturar tu foto base antes de registrar asistencias.</p>
-        <button type="button" class="secondary" (click)="requestEnrollment()">Registrar selfie base</button>
-        <button type="button" class="link-button" (click)="resetFlow()">Volver</button>
-      </div>
+        @case ('enroll') {
+          <div class="status__message status__message--warning">
+            <h2>Necesitamos tu selfie de referencia</h2>
+            @if (hasEmployee()) {
+              <p class="employee-summary">
+                <span>{{ employeeFullName() }}</span>
+                <small>Cédula {{ employee()?.identificationNumber }}</small>
+              </p>
+            }
+            <p>Debemos capturar tu foto base antes de registrar asistencias.</p>
+            <button type="button" class="secondary" (click)="requestEnrollment()">Registrar selfie base</button>
+            <button type="button" class="link-button" (click)="resetFlow()">Volver</button>
+          </div>
+        }
 
-      <div *ngSwitchCase="'ready'" class="status__message status__message--success">
-        <h2>Todo listo, {{ employeeFullName() }}</h2>
-        <p class="employee-summary">
-          <span>{{ employeeFullName() }}</span>
-          <small>Cédula {{ employee()?.identificationNumber }}</small>
-        </p>
-        <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
-        <button type="button" class="primary" (click)="markAttendance()">Tomar selfie y registrar</button>
-        <button type="button" class="link-button" (click)="resetFlow()">No soy {{ employeeFullName() }}</button>
-      </div>
+        @case ('ready') {
+          <div class="status__message status__message--success">
+            <h2>Todo listo, {{ employeeFullName() }}</h2>
+            <p class="employee-summary">
+              <span>{{ employeeFullName() }}</span>
+              <small>Cédula {{ employee()?.identificationNumber }}</small>
+            </p>
+            <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
+            <button type="button" class="primary" (click)="markAttendance()">Tomar selfie y registrar</button>
+            <button type="button" class="link-button" (click)="resetFlow()">No soy {{ employeeFullName() }}</button>
+          </div>
+        }
 
-      <div *ngSwitchCase="'error'" class="status__message status__message--error">
-        <h2>No encontramos tu información</h2>
-        <p>{{ errorMessage() }}</p>
-        <button type="button" class="secondary" (click)="resetFlow()">Intentar nuevamente</button>
-      </div>
+        @case ('error') {
+          <div class="status__message status__message--error">
+            <h2>No encontramos tu información</h2>
+            <p>{{ errorMessage() }}</p>
+            <button type="button" class="secondary" (click)="resetFlow()">Intentar nuevamente</button>
+          </div>
+        }
 
-      <div *ngSwitchDefault class="status__message status__message--muted">
-        Identifica al empleado con su número de cédula para continuar.
-      </div>
+        @default {
+          <div class="status__message status__message--muted">
+            Identifica al empleado con su número de cédula para continuar.
+          </div>
+        }
+      }
     </div>
   </section>
 
