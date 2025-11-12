@@ -14,6 +14,13 @@ export interface EmployeeProfile {
   hasBaseSelfie: boolean;
 }
 
+export interface SelfieMetadata {
+  latitude: number | null;
+  longitude: number | null;
+  capturedAt: string;
+  deviceMetadata: string;
+}
+
 type EmployeeIdentificationResponse = {
   id: string;
   locationId: string;
@@ -60,6 +67,28 @@ export class EmployeeService {
           error.error?.detail ??
           error.error?.message ??
           'No pudimos validar la identificación en este momento. Intenta nuevamente.';
+
+        return throwError(() => new Error(fallbackMessage));
+      })
+    );
+  }
+
+  uploadSelfie(employeeId: string, image: File, metadata: SelfieMetadata): Observable<void> {
+    const url = `${this.apiUrl}/employees/${encodeURIComponent(employeeId)}/image`;
+    const formData = new FormData();
+    formData.append('image', image);
+    formData.append('latitude', metadata.latitude?.toString() ?? '');
+    formData.append('longitude', metadata.longitude?.toString() ?? '');
+    formData.append('capturedAt', metadata.capturedAt);
+    formData.append('deviceMetadata', metadata.deviceMetadata);
+
+    return this.http.post<void>(url, formData).pipe(
+      catchError((error: HttpErrorResponse) => {
+        const fallbackMessage =
+          error.error?.title ??
+          error.error?.detail ??
+          error.error?.message ??
+          'No pudimos guardar la selfie base. Intenta nuevamente.';
 
         return throwError(() => new Error(fallbackMessage));
       })

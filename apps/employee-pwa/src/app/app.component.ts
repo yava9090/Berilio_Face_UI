@@ -2,16 +2,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ReactiveFormsModule, Validators, FormBuilder } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { EmployeeService, EmployeeProfile } from './services/employee.service';
 
-type ViewState = 'idle' | 'loading' | 'enroll' | 'ready' | 'error';
+type ViewState = 'idle' | 'loading' | 'enroll' | 'ready' | 'error' | 'uploadingSelfie';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +27,7 @@ export class AppComponent {
   private readonly fb = inject(FormBuilder);
   private readonly employeeService = inject(EmployeeService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly selfieInput = viewChild<ElementRef<HTMLInputElement>>('selfieInput');
 
   readonly identificationForm = this.fb.nonNullable.group({
     identification: ['', [Validators.required, Validators.minLength(6)]],
@@ -33,6 +36,8 @@ export class AppComponent {
   readonly state = signal<ViewState>('idle');
   readonly errorMessage = signal<string | null>(null);
   readonly employee = signal<EmployeeProfile | null>(null);
+  readonly lastCapturedLocation = signal<{ latitude: number; longitude: number } | null>(null);
+  readonly captureRequestedAt = signal<Date | null>(null);
 
   readonly hasEmployee = computed(() => this.employee() !== null);
   readonly employeeFullName = computed(() => {
@@ -77,10 +82,90 @@ export class AppComponent {
   }
 
   requestEnrollment(): void {
-    this.errorMessage.set('La captura de selfie base estará disponible próximamente.');
+    this.captureRequestedAt.set(new Date());
+    this.tryCaptureLocation().finally(() => {
+      const input = this.selfieInput()?.nativeElement;
+      input?.click();
+    });
   }
 
   markAttendance(): void {
     this.errorMessage.set('La captura de asistencia estará disponible en la siguiente iteración.');
+  }
+
+  handleSelfieSelection(event: Event): void {
+    const employee = this.employee();
+    if (!employee) {
+      this.errorMessage.set('Debes identificar al empleado antes de registrar la selfie.');
+      return;
+    }
+
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0);
+
+    if (!file) {
+      return;
+    }
+
+    this.state.set('uploadingSelfie');
+    this.errorMessage.set(null);
+
+    const location = this.lastCapturedLocation();
+    const capturedAt = this.captureRequestedAt() ?? new Date();
+
+    this.employeeService
+      .uploadSelfie(employee.id, file, {
+        latitude: location?.latitude ?? null,
+        longitude: location?.longitude ?? null,
+        capturedAt: capturedAt.toISOString(),
+        deviceMetadata: 'pwa-employee-kiosk',
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.employee.set({ ...employee, hasBaseSelfie: true });
+          this.state.set('ready');
+          if (input) {
+            input.value = '';
+          }
+        },
+        error: (error) => {
+          this.errorMessage.set(
+            error?.message ?? 'No pudimos guardar la selfie base. Intenta nuevamente.'
+          );
+          this.state.set('enroll');
+          if (input) {
+            input.value = '';
+          }
+        },
+      });
+  }
+
+  private async tryCaptureLocation(): Promise<void> {
+    if (!('geolocation' in navigator)) {
+      this.lastCapturedLocation.set(null);
+      return;
+    }
+
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.lastCapturedLocation.set({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+          resolve();
+        },
+        () => {
+          this.lastCapturedLocation.set(null);
+          resolve();
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 30_000,
+          timeout: 10_000,
+        }
+      );
+    });
   }
 }
