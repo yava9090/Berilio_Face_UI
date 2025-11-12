@@ -19,6 +19,7 @@ export interface SelfieMetadata {
   longitude: number | null;
   capturedAt: string;
   deviceMetadata: string;
+  type: 'Base' | 'Attendance';
 }
 
 type EmployeeIdentificationResponse = {
@@ -81,6 +82,7 @@ export class EmployeeService {
     formData.append('longitude', metadata.longitude?.toString() ?? '');
     formData.append('capturedAt', metadata.capturedAt);
     formData.append('deviceMetadata', metadata.deviceMetadata);
+    formData.append('type', metadata.type);
 
     return this.http.post<void>(url, formData).pipe(
       catchError((error: HttpErrorResponse) => {

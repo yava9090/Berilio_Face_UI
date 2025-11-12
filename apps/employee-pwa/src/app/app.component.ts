@@ -14,6 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EmployeeService, EmployeeProfile } from './services/employee.service';
 
 type ViewState = 'idle' | 'loading' | 'enroll' | 'ready' | 'error' | 'uploadingSelfie';
+type SelfieCaptureType = 'Base' | 'Attendance';
 
 @Component({
   selector: 'app-root',
@@ -38,6 +39,10 @@ export class AppComponent {
   readonly employee = signal<EmployeeProfile | null>(null);
   readonly lastCapturedLocation = signal<{ latitude: number; longitude: number } | null>(null);
   readonly captureRequestedAt = signal<Date | null>(null);
+  readonly selfieCaptureType = signal<SelfieCaptureType>('Base');
+  readonly uploadingMessage = computed(() =>
+    this.selfieCaptureType() === 'Base' ? 'Guardando selfie base...' : 'Registrando asistencia...'
+  );
 
   readonly hasEmployee = computed(() => this.employee() !== null);
   readonly employeeFullName = computed(() => {
@@ -82,15 +87,16 @@ export class AppComponent {
   }
 
   requestEnrollment(): void {
-    this.captureRequestedAt.set(new Date());
-    this.tryCaptureLocation().finally(() => {
-      const input = this.selfieInput()?.nativeElement;
-      input?.click();
-    });
+    this.startSelfieCapture('Base');
   }
 
   markAttendance(): void {
-    this.errorMessage.set('La captura de asistencia estará disponible en la siguiente iteración.');
+    if (!this.employee()) {
+      this.errorMessage.set('Debes identificar al empleado antes de registrar asistencia.');
+      return;
+    }
+
+    this.startSelfieCapture('Attendance');
   }
 
   handleSelfieSelection(event: Event): void {
@@ -107,6 +113,8 @@ export class AppComponent {
       return;
     }
 
+    const captureType = this.selfieCaptureType();
+
     this.state.set('uploadingSelfie');
     this.errorMessage.set(null);
 
@@ -119,6 +127,7 @@ export class AppComponent {
         longitude: location?.longitude ?? null,
         capturedAt: capturedAt.toISOString(),
         deviceMetadata: 'pwa-employee-kiosk',
+        type: captureType,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -133,12 +142,26 @@ export class AppComponent {
           this.errorMessage.set(
             error?.message ?? 'No pudimos guardar la selfie base. Intenta nuevamente.'
           );
-          this.state.set('enroll');
+          this.state.set(captureType === 'Base' ? 'enroll' : 'ready');
           if (input) {
             input.value = '';
           }
         },
       });
+  }
+
+  private startSelfieCapture(type: SelfieCaptureType): void {
+    if (!this.employee()) {
+      this.errorMessage.set('Debes identificar al empleado antes de registrar la selfie.');
+      return;
+    }
+
+    this.selfieCaptureType.set(type);
+    this.captureRequestedAt.set(new Date());
+    this.tryCaptureLocation().finally(() => {
+      const input = this.selfieInput()?.nativeElement;
+      input?.click();
+    });
   }
 
   private async tryCaptureLocation(): Promise<void> {

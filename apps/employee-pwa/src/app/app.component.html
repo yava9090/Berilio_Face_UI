@@ -27,6 +27,14 @@
       </button>
     </form>
 
+    <input
+      #selfieInput
+      type="file"
+      accept="image/*"
+      (change)="handleSelfieSelection($event)"
+      hidden
+    />
+
     <div class="status">
       @switch (state()) {
         @case ('loading') {
@@ -49,13 +57,6 @@
             @if (errorMessage()) {
               <p class="input-hint">{{ errorMessage() }}</p>
             }
-            <input
-              #selfieInput
-              type="file"
-              accept="image/*"
-              (change)="handleSelfieSelection($event)"
-              hidden
-            />
             <button type="button" class="secondary" (click)="requestEnrollment()">Seleccionar archivo</button>
             <button type="button" class="link-button" (click)="resetFlow()">Volver</button>
           </div>
@@ -69,7 +70,9 @@
               <small>Cédula {{ employee()?.identificationNumber }}</small>
             </p>
             <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
-            <button type="button" class="primary" (click)="markAttendance()">Tomar selfie y registrar</button>
+            <button type="button" class="primary" (click)="markAttendance()" [disabled]="state() === 'uploadingSelfie'">
+              Tomar selfie y registrar
+            </button>
             <button type="button" class="link-button" (click)="resetFlow()">No soy {{ employeeFullName() }}</button>
           </div>
         }
@@ -77,7 +80,7 @@
         @case ('uploadingSelfie') {
           <div class="status__message">
             <span class="loader"></span>
-            Guardando selfie base...
+            {{ uploadingMessage() }}
           </div>
         }
 
