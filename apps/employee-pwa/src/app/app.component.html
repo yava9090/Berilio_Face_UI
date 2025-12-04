@@ -127,5 +127,15 @@
     </div>
   }
 
+  @if (showSuccessModal()) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>Registro exitoso</h3>
+        <p>{{ successMessage() || 'Asistencia registrada correctamente.' }}</p>
+        <button type="button" class="primary" (click)="showSuccessModal.set(false)">Entendido</button>
+      </div>
+    </div>
+  }
+
   <footer></footer>
 </div>

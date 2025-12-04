@@ -39,6 +39,7 @@ export class AppComponent {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showErrorModal = signal(false);
+  readonly showSuccessModal = signal(false);
   readonly attendanceLocked = signal(false);
   readonly lastAttendanceAt = signal<Date | null>(null);
   readonly employee = signal<EmployeeProfile | null>(null);
@@ -92,6 +93,7 @@ export class AppComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
     this.showErrorModal.set(false);
+    this.showSuccessModal.set(false);
     this.attendanceLocked.set(false);
     this.lastAttendanceAt.set(null);
     this.state.set('idle');
@@ -172,6 +174,7 @@ export class AppComponent {
           if (captureType === 'Base') {
             this.employee.set({ ...employee, hasBaseSelfie: true });
             this.successMessage.set('Selfie base enrolada con éxito.');
+            this.showSuccessModal.set(true);
           } else {
             const similarity = result?.similarity ?? null;
             const now = new Date();
@@ -183,6 +186,7 @@ export class AppComponent {
                 ? `Asistencia registrada a las ${timeStr}. Similitud: ${Math.round(similarity * 100) / 100}`
                 : `Asistencia registrada a las ${timeStr}.`
             );
+            this.showSuccessModal.set(true);
           }
           this.state.set('ready');
           if (input) {
