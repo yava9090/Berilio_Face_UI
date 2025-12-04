@@ -14,14 +14,6 @@ export interface EmployeeProfile {
   hasBaseSelfie: boolean;
 }
 
-export interface SelfieMetadata {
-  latitude: number | null;
-  longitude: number | null;
-  capturedAt: string;
-  deviceMetadata: string;
-  type: 'Base' | 'Attendance';
-}
-
 type EmployeeIdentificationResponse = {
   id: string;
   locationId: string;
@@ -30,6 +22,18 @@ type EmployeeIdentificationResponse = {
   identificationNumber: string;
   phone: string;
   hasBaseSelfie: boolean;
+};
+
+type EnrollStatusResponse = {
+  hasBaseSelfie: boolean;
+  baseImageObjectName?: string | null;
+  comprefaceImageId?: string | null;
+};
+
+type VerifyResponse = {
+  employeeId: string;
+  identificationNumber: string;
+  similarity: number;
 };
 
 @Injectable({
@@ -74,23 +78,46 @@ export class EmployeeService {
     );
   }
 
-  uploadSelfie(employeeId: string, image: File, metadata: SelfieMetadata): Observable<void> {
-    const url = `${this.apiUrl}/employees/${encodeURIComponent(employeeId)}/image`;
+  getEnrollStatusByIdentification(identification: string): Observable<EnrollStatusResponse> {
+    const url = `${this.apiUrl}/employees/identification/${encodeURIComponent(identification)}/enroll/status`;
+    return this.http.get<EnrollStatusResponse>(url);
+  }
+
+  enrollFace(employeeId: string, image: File, latitude: number, longitude: number): Observable<string> {
+    const url = `${this.apiUrl}/employees/${encodeURIComponent(employeeId)}/enroll`;
     const formData = new FormData();
     formData.append('image', image);
-    formData.append('latitude', metadata.latitude?.toString() ?? '');
-    formData.append('longitude', metadata.longitude?.toString() ?? '');
-    formData.append('capturedAt', metadata.capturedAt);
-    formData.append('deviceMetadata', metadata.deviceMetadata);
-    formData.append('type', metadata.type);
+    formData.append('latitude', latitude.toString());
+    formData.append('longitude', longitude.toString());
 
-    return this.http.post<void>(url, formData).pipe(
+    return this.http.post<{ imageId: string }>(url, formData).pipe(
+      map((resp) => resp.imageId),
       catchError((error: HttpErrorResponse) => {
         const fallbackMessage =
           error.error?.title ??
           error.error?.detail ??
           error.error?.message ??
-          'No pudimos guardar la selfie base. Intenta nuevamente.';
+          'No pudimos enrolar la selfie. Intenta nuevamente.';
+
+        return throwError(() => new Error(fallbackMessage));
+      })
+    );
+  }
+
+  verifyFace(identification: string, image: File, latitude: number, longitude: number): Observable<VerifyResponse> {
+    const url = `${this.apiUrl}/employees/identification/${encodeURIComponent(identification)}/verify`;
+    const formData = new FormData();
+    formData.append('image', image);
+    formData.append('latitude', latitude.toString());
+    formData.append('longitude', longitude.toString());
+
+    return this.http.post<VerifyResponse>(url, formData).pipe(
+      catchError((error: HttpErrorResponse) => {
+        const fallbackMessage =
+          error.error?.title ??
+          error.error?.detail ??
+          error.error?.message ??
+          'No pudimos verificar la identidad. Intenta nuevamente.';
 
         return throwError(() => new Error(fallbackMessage));
       })

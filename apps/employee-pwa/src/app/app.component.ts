@@ -36,6 +36,7 @@ export class AppComponent {
 
   readonly state = signal<ViewState>('idle');
   readonly errorMessage = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
   readonly employee = signal<EmployeeProfile | null>(null);
   readonly lastCapturedLocation = signal<{ latitude: number; longitude: number } | null>(null);
   readonly captureRequestedAt = signal<Date | null>(null);
@@ -57,6 +58,7 @@ export class AppComponent {
     }
 
     this.errorMessage.set(null);
+    this.successMessage.set(null);
     this.state.set('loading');
 
     const id = this.identificationForm.controls.identification.value.trim();
@@ -83,6 +85,7 @@ export class AppComponent {
     this.identificationForm.reset();
     this.employee.set(null);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
     this.state.set('idle');
   }
 
@@ -117,31 +120,53 @@ export class AppComponent {
 
     this.state.set('uploadingSelfie');
     this.errorMessage.set(null);
+    this.successMessage.set(null);
 
     const location = this.lastCapturedLocation();
     const capturedAt = this.captureRequestedAt() ?? new Date();
 
-    this.employeeService
-      .uploadSelfie(employee.id, file, {
-        latitude: location?.latitude ?? null,
-        longitude: location?.longitude ?? null,
-        capturedAt: capturedAt.toISOString(),
-        deviceMetadata: 'pwa-employee-kiosk',
-        type: captureType,
-      })
+    if (!location) {
+      this.errorMessage.set(
+        'No pudimos obtener tu ubicación. Activa el GPS y otorga permisos de localización.'
+      );
+      this.state.set(captureType === 'Base' ? 'enroll' : 'ready');
+      if (input) {
+        input.value = '';
+      }
+      return;
+    }
+
+    const latitude = location.latitude;
+    const longitude = location.longitude;
+
+    const action$ =
+      captureType === 'Base'
+        ? this.employeeService.enrollFace(employee.id, file, latitude, longitude)
+        : this.employeeService.verifyFace(employee.identificationNumber, file, latitude, longitude);
+
+    action$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.employee.set({ ...employee, hasBaseSelfie: true });
+        next: (result) => {
+          if (captureType === 'Base') {
+            this.employee.set({ ...employee, hasBaseSelfie: true });
+            this.successMessage.set('Selfie base enrolada con éxito.');
+          } else {
+            this.successMessage.set(
+              `Asistencia registrada. Similitud: ${
+                typeof result === 'object' && 'similarity' in result
+                  ? Math.round((result as any).similarity * 100) / 100
+                  : 'N/D'
+              }`
+            );
+          }
           this.state.set('ready');
           if (input) {
             input.value = '';
           }
         },
         error: (error) => {
-          this.errorMessage.set(
-            error?.message ?? 'No pudimos guardar la selfie base. Intenta nuevamente.'
-          );
+          this.errorMessage.set(error?.message ?? 'No pudimos procesar la selfie. Intenta nuevamente.');
           this.state.set(captureType === 'Base' ? 'enroll' : 'ready');
           if (input) {
             input.value = '';

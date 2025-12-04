@@ -69,7 +69,11 @@
               <span>{{ employeeFullName() }}</span>
               <small>Cédula {{ employee()?.identificationNumber }}</small>
             </p>
-            <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
+            @if (successMessage()) {
+              <p class="input-hint">{{ successMessage() }}</p>
+            } @else {
+              <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
+            }
             <button type="button" class="primary" (click)="markAttendance()" [disabled]="state() === 'uploadingSelfie'">
               Tomar selfie y registrar
             </button>
