@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { ReactiveFormsModule, Validators, FormBuilder } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { map, Observable } from 'rxjs';
 
 import { EmployeeService, EmployeeProfile } from './services/employee.service';
 
@@ -37,6 +38,7 @@ export class AppComponent {
   readonly state = signal<ViewState>('idle');
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly showErrorModal = signal(false);
   readonly employee = signal<EmployeeProfile | null>(null);
   readonly lastCapturedLocation = signal<{ latitude: number; longitude: number } | null>(null);
   readonly captureRequestedAt = signal<Date | null>(null);
@@ -59,6 +61,7 @@ export class AppComponent {
 
     this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.showErrorModal.set(false);
     this.state.set('loading');
 
     const id = this.identificationForm.controls.identification.value.trim();
@@ -86,6 +89,7 @@ export class AppComponent {
     this.employee.set(null);
     this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.showErrorModal.set(false);
     this.state.set('idle');
   }
 
@@ -121,6 +125,7 @@ export class AppComponent {
     this.state.set('uploadingSelfie');
     this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.showErrorModal.set(false);
 
     const location = this.lastCapturedLocation();
     const capturedAt = this.captureRequestedAt() ?? new Date();
@@ -139,25 +144,36 @@ export class AppComponent {
     const latitude = location.latitude;
     const longitude = location.longitude;
 
-    const action$ =
-      captureType === 'Base'
-        ? this.employeeService.enrollFace(employee.id, file, latitude, longitude)
-        : this.employeeService.verifyFace(employee.identificationNumber, file, latitude, longitude);
+    let action$: Observable<VerifyResult>;
+
+    if (captureType === 'Base') {
+      action$ = this.employeeService
+        .enrollFace(employee.id, file, latitude, longitude)
+        .pipe(map(() => ({ similarity: undefined } as VerifyResult)));
+    } else {
+      action$ = this.employeeService.verifyFace(
+        employee.identificationNumber,
+        file,
+        latitude,
+        longitude
+      );
+    }
+
+    type VerifyResult = { similarity?: number };
 
     action$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (result) => {
+        next: (result: VerifyResult) => {
           if (captureType === 'Base') {
             this.employee.set({ ...employee, hasBaseSelfie: true });
             this.successMessage.set('Selfie base enrolada con éxito.');
           } else {
+            const similarity = result?.similarity ?? null;
             this.successMessage.set(
-              `Asistencia registrada. Similitud: ${
-                typeof result === 'object' && 'similarity' in result
-                  ? Math.round((result as any).similarity * 100) / 100
-                  : 'N/D'
-              }`
+              similarity !== null
+                ? `Asistencia registrada. Similitud: ${Math.round(similarity * 100) / 100}`
+                : 'Asistencia registrada.'
             );
           }
           this.state.set('ready');
@@ -165,8 +181,14 @@ export class AppComponent {
             input.value = '';
           }
         },
-        error: (error) => {
-          this.errorMessage.set(error?.message ?? 'No pudimos procesar la selfie. Intenta nuevamente.');
+        error: (error: any) => {
+          const message =
+            error?.message?.includes('TooFarFromLocation') || error?.message?.includes('fuera del rango')
+              ? 'Estás fuera de la sede asignada. Activa tu GPS y acércate a la ubicación permitida.'
+              : error?.message ?? 'No pudimos procesar la selfie. Intenta nuevamente.';
+
+          this.errorMessage.set(message);
+          this.showErrorModal.set(true);
           this.state.set(captureType === 'Base' ? 'enroll' : 'ready');
           if (input) {
             input.value = '';

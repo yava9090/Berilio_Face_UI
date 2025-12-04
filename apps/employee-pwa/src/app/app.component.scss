@@ -189,6 +189,46 @@ footer {
   color: rgba(248, 250, 252, 0.6);
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: min(420px, 90vw);
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.25);
+
+  h3 {
+    margin: 0 0 0.5rem;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0 0 1rem;
+    color: #475569;
+    line-height: 1.5;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 0.75rem;
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

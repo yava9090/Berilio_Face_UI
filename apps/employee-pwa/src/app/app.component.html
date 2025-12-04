@@ -69,7 +69,9 @@
               <span>{{ employeeFullName() }}</span>
               <small>Cédula {{ employee()?.identificationNumber }}</small>
             </p>
-            @if (successMessage()) {
+            @if (errorMessage()) {
+              <p class="input-hint">{{ errorMessage() }}</p>
+            } @else if (successMessage()) {
               <p class="input-hint">{{ successMessage() }}</p>
             } @else {
               <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
@@ -104,6 +106,16 @@
       }
     </div>
   </section>
+
+  @if (showErrorModal()) {
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>Verificación rechazada</h3>
+        <p>{{ errorMessage() || 'No pudimos procesar la selfie.' }}</p>
+        <button type="button" class="primary" (click)="showErrorModal.set(false)">Entendido</button>
+      </div>
+    </div>
+  }
 
   <footer></footer>
 </div>
