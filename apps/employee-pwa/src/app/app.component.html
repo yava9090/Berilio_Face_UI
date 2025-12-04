@@ -76,7 +76,12 @@
             } @else {
               <p>Ahora tomaremos la selfie del momento para registrar tu asistencia.</p>
             }
-            <button type="button" class="primary" (click)="markAttendance()" [disabled]="state() === 'uploadingSelfie'">
+            <button
+              type="button"
+              class="primary"
+              (click)="markAttendance()"
+              [disabled]="state() === 'uploadingSelfie' || attendanceLocked()"
+            >
               Tomar selfie y registrar
             </button>
             <button type="button" class="link-button" (click)="resetFlow()">No soy {{ employeeFullName() }}</button>

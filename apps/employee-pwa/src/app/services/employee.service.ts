@@ -34,6 +34,15 @@ type VerifyResponse = {
   employeeId: string;
   identificationNumber: string;
   similarity: number;
+  imageObjectName?: string | null;
+};
+
+type AttendanceResponse = {
+  attendanceId: string;
+  employeeId: string;
+  identificationNumber: string;
+  similarity: number;
+  imageObjectName?: string | null;
 };
 
 @Injectable({
@@ -118,6 +127,31 @@ export class EmployeeService {
           error.error?.detail ??
           error.error?.message ??
           'No pudimos verificar la identidad. Intenta nuevamente.';
+
+        return throwError(() => new Error(fallbackMessage));
+      })
+    );
+  }
+
+  registerAttendance(
+    identification: string,
+    image: File,
+    latitude: number,
+    longitude: number
+  ): Observable<AttendanceResponse> {
+    const url = `${this.apiUrl}/employees/identification/${encodeURIComponent(identification)}/attendance`;
+    const formData = new FormData();
+    formData.append('image', image);
+    formData.append('latitude', latitude.toString());
+    formData.append('longitude', longitude.toString());
+
+    return this.http.post<AttendanceResponse>(url, formData).pipe(
+      catchError((error: HttpErrorResponse) => {
+        const fallbackMessage =
+          error.error?.title ??
+          error.error?.detail ??
+          error.error?.message ??
+          'No pudimos registrar la asistencia. Intenta nuevamente.';
 
         return throwError(() => new Error(fallbackMessage));
       })

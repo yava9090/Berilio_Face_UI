@@ -39,6 +39,8 @@ export class AppComponent {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly showErrorModal = signal(false);
+  readonly attendanceLocked = signal(false);
+  readonly lastAttendanceAt = signal<Date | null>(null);
   readonly employee = signal<EmployeeProfile | null>(null);
   readonly lastCapturedLocation = signal<{ latitude: number; longitude: number } | null>(null);
   readonly captureRequestedAt = signal<Date | null>(null);
@@ -90,6 +92,8 @@ export class AppComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
     this.showErrorModal.set(false);
+    this.attendanceLocked.set(false);
+    this.lastAttendanceAt.set(null);
     this.state.set('idle');
   }
 
@@ -151,7 +155,7 @@ export class AppComponent {
         .enrollFace(employee.id, file, latitude, longitude)
         .pipe(map(() => ({ similarity: undefined } as VerifyResult)));
     } else {
-      action$ = this.employeeService.verifyFace(
+      action$ = this.employeeService.registerAttendance(
         employee.identificationNumber,
         file,
         latitude,
@@ -170,10 +174,14 @@ export class AppComponent {
             this.successMessage.set('Selfie base enrolada con éxito.');
           } else {
             const similarity = result?.similarity ?? null;
+            const now = new Date();
+            this.lastAttendanceAt.set(now);
+            this.attendanceLocked.set(true);
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             this.successMessage.set(
               similarity !== null
-                ? `Asistencia registrada. Similitud: ${Math.round(similarity * 100) / 100}`
-                : 'Asistencia registrada.'
+                ? `Asistencia registrada a las ${timeStr}. Similitud: ${Math.round(similarity * 100) / 100}`
+                : `Asistencia registrada a las ${timeStr}.`
             );
           }
           this.state.set('ready');
